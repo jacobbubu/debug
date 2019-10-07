@@ -13,3 +13,7 @@ npm install
 ``` bash
 npm run example:ex1
 ```
+
+Got the output:
+
+![ex1's output](./docs/ex1-1.png)

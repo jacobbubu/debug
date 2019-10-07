@@ -23,8 +23,8 @@ d1.info('server started')
 d2.debug('raw request: %h', Buffer.from('hello world'))
 
 d2.info('%O', {
-  sender: {
-    id: 'USER_ID'
+  headers: {
+    'x-': 'USER_ID'
   },
   recipient: {
     id: 'PAGE_ID'
@@ -40,6 +40,9 @@ d2.info('%O', {
   }
 })
 
-Debug.disable()
-
-d1.info('no more output')
+setTimeout(() => {
+  d2.info('doing a lots of uninteresting work')
+  d1.debug('some periodic works occurred')
+  Debug.disable()
+  d1.info('no more output')
+}, 100)
