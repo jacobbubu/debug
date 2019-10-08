@@ -2,8 +2,7 @@ process.env.DEBUG = '*'
 process.env.DEBUG_COLORS = 'true'
 process.env.DEBUG_INLINE_JSON = 'false'
 
-import { Debug, basicColors } from '../src'
-import * as util from 'util'
+import { Debug } from '../src'
 
 const d1 = Debug.create('http')
 const d2 = d1.ns('req')
