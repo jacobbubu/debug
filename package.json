@@ -1,6 +1,6 @@
 {
   "name": "@jacobbubu/debug",
-  "version": "0.0.0",
+  "version": "0.0.0-development",
   "description": "",
   "keywords": [],
   "main": "dist/index.js",
@@ -11,7 +11,7 @@
   "author": "jacobbubu <rong.shen@gmail.com>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/jacobbubu/debug.git"
   },
   "license": "MIT",
   "engines": {
@@ -105,7 +105,7 @@
     "prompt": "^1.0.0",
     "replace-in-file": "^4.1.0",
     "rimraf": "^2.6.3",
-    "semantic-release": "^15.13.18",
+    "semantic-release": "^15.13.24",
     "ts-jest": "^24.0.2",
     "ts-node": "^8.3.0",
     "ts-node-dev": "^1.0.0-pre.43",
