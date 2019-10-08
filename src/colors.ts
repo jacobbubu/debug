@@ -88,4 +88,35 @@ const logLevelColors = {
   WARN: 11,
   DEBUG: 24
 }
-export { colors, logLevelColors }
+
+function compose(colorCode: number) {
+  return (v: any) => `\u001B[${colorCode}m${v}\u001B[0m`
+}
+
+const basicColors = {
+  black(v: any) {
+    return compose(30)(v)
+  },
+  red(v: any) {
+    return compose(31)(v)
+  },
+  green(v: any) {
+    return compose(32)(v)
+  },
+  yellow(v: any) {
+    return compose(33)(v)
+  },
+  blue(v: any) {
+    return compose(34)(v)
+  },
+  magenta(v: any) {
+    return compose(35)(v)
+  },
+  cyan(v: any) {
+    return compose(36)(v)
+  },
+  white(v: any) {
+    return compose(37)(v)
+  }
+}
+export { colors, logLevelColors, basicColors }

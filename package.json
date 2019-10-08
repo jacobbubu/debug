@@ -118,6 +118,7 @@
   },
   "dependencies": {
     "date-format": "^2.1.0",
+    "filesize": "^5.0.2",
     "ms": "^2.1.2",
     "supports-color": "^7.1.0"
   }

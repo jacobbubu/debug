@@ -2,27 +2,16 @@ process.env.DEBUG = '*'
 process.env.DEBUG_COLORS = 'true'
 process.env.DEBUG_INLINE_JSON = 'false'
 
-import { Debug } from '../src'
+import { Debug, basicColors } from '../src'
 import * as util from 'util'
 
 const d1 = Debug.create('http')
 const d2 = d1.ns('req')
 
-Debug.formatters.h = function(this: Debug, v: Buffer) {
-  const out = [
-    v.length,
-    v
-      .toString('hex')
-      .match(/.{1,2}/g)
-      .join(' ')
-  ]
-  return util.inspect(out, { colors: this.useColors })
-}
+d1.log('server started')
+d2.debug('raw request: %10.2B', Buffer.from('hello world'))
 
-d1.info('server started')
-d2.debug('raw request: %h', Buffer.from('hello world'))
-
-d2.info('%O', {
+d2.log('%O', {
   headers: {
     'x-': 'USER_ID'
   },
@@ -41,8 +30,8 @@ d2.info('%O', {
 })
 
 setTimeout(() => {
-  d2.info('doing a lots of uninteresting work')
+  d2.log('doing a lots of uninteresting work')
   d1.debug('some periodic works occurred')
   Debug.disable()
-  d1.info('no more output')
+  d1.log('no more output')
 }, 100)

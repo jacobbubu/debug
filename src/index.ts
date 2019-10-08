@@ -2,7 +2,8 @@ import { isatty } from 'tty'
 import * as util from 'util'
 import humanize = require('ms')
 import formatDate = require('date-format')
-import { colors, logLevelColors } from './colors'
+import fsize = require('filesize')
+import { colors, logLevelColors, basicColors } from './colors'
 
 const inspectOpts: Record<string, boolean | null | number> = Object.keys(process.env)
   .filter(key => {
@@ -138,6 +139,10 @@ class Debug {
     this._log('WARN', format, ...args)
   }
 
+  public log(format: any, ...args: any[]) {
+    this._log('INFO', format, ...args)
+  }
+
   public info(format: any, ...args: any[]) {
     this._log('INFO', format, ...args)
   }
@@ -222,15 +227,16 @@ class Debug {
 
     let index = -1
     format = format
-      .replace(/%([a-zA-Z%])/g, (match: string, replacer) => {
+      .replace(/%(?:[0-9a-zA-Z\.$\ ])*([a-zA-Z%])/g, (match: string, replacer) => {
         if (match === '%%') {
           return match
         }
         index++
+        const param = match.slice(1, -1)
         const formatter = Debug.formatters[replacer]
         if (formatter) {
           const val = args[index]
-          match = formatter.call(self, val)
+          match = formatter.call(self, val, param)
 
           // Now we need to remove `args[index]` since it's inlined in the `format`
           args.splice(index, 1)
@@ -333,13 +339,52 @@ class Debug {
   }
 
   public static formatters: Record<string, Function> = {
-    o: function(this: Debug, v: any) {
+    o: function(this: Debug, v: any, param: string) {
       inspectOpts.colors = this.useColors
       return util.inspect(v, inspectOpts).replace(/\s*\n\s*/g, ' ')
     },
-    O: function(this: Debug, v: any) {
+    O: function(this: Debug, v: any, param: string) {
       inspectOpts.colors = this.useColors
       return util.inspect(v, inspectOpts)
+    },
+    B: function(this: Debug, v: Buffer | null, param: string) {
+      if (!Buffer.isBuffer(v)) {
+        return util.inspect(v, { colors: this.useColors })
+      }
+      const [p1, p2] = param.split('.')
+      const limit = p1 ? parseInt(p1, 10) : 16
+      const width = p2 ? parseInt(p2, 10) : 2
+      let out
+
+      const bufLenText = fsize(v.length)
+      if (v.length) {
+        const overLimit = v.length > limit ? '…' : ''
+        const partial = v.slice(0, limit)
+        let textValue = `'${partial.toString() + overLimit}'`
+        if (this.useColors) {
+          textValue = basicColors.yellow(textValue)
+        }
+        const self = this
+        out =
+          '[Buf ' +
+          partial
+            .slice(0, 8)
+            .toString('hex')
+            .match(new RegExp(`.{1,${width}}`, 'g'))!
+            .map(n => {
+              return self.useColors ? basicColors.green(n) : n
+            })
+            .join(' ') +
+          (this.useColors ? basicColors.green(overLimit) : overLimit) +
+          ' ' +
+          `(${bufLenText})` +
+          ' ' +
+          textValue +
+          ']'
+      } else {
+        out = '[Buf (${bufLenText})]'
+      }
+      return out
     }
   }
 }
@@ -347,3 +392,4 @@ class Debug {
 Debug.enable(Debug.load())
 
 export { Debug, inspectOpts }
+export * from './colors'
