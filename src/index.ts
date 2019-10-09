@@ -4,6 +4,7 @@ import humanize = require('ms')
 import formatDate = require('date-format')
 import fsize = require('filesize')
 import { colors, logLevelColors, basicColors } from './colors'
+;(global as any).__prevDebugName__ = ''
 
 const inspectOpts: Record<string, boolean | null | number> = Object.keys(process.env)
   .filter(key => {
@@ -164,7 +165,6 @@ class Debug {
   private static _skips: RegExp[]
   private static _names: RegExp[]
 
-  private static prevName = ''
   private static nameWidth = (inspectOpts.nameWidth || 9) as number
 
   private static log(self: Debug, opts: LogOptions, format: string, ...args: any[]) {
@@ -175,12 +175,12 @@ class Debug {
         : name.slice(0, Debug.nameWidth)
 
     const padChar = ' '
-    if (Debug.prevName === name) {
+    if ((global as any).__prevDebugName__ === name) {
       currName = ''.padEnd(Debug.nameWidth, padChar)
     } else {
       currName = currName.padEnd(Debug.nameWidth, padChar)
     }
-    Debug.prevName = name
+    ;(global as any).__prevDebugName__ = name
 
     let label = logLevel.padStart(5, ' ')
     let diffLabel = ''
