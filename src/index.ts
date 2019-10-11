@@ -202,26 +202,31 @@ class Debug {
 
   private static log(self: Debug, opts: LogOptions, format: string, ...args: any[]) {
     const { namespace: name, useColors, useUTC, useInlineJson, color, diff, logLevel } = opts
-    let currName =
-      name.length > Debug.nameWidth
-        ? name.slice(0, Debug.nameWidth - 1) + '…'
-        : name.slice(0, Debug.nameWidth)
+    let currName
+
+    if (useColors) {
+      currName =
+        name.length > Debug.nameWidth
+          ? name.slice(0, Debug.nameWidth - 1) + '…'
+          : name.slice(0, Debug.nameWidth)
+    } else {
+      currName = name
+    }
 
     const padChar = ' '
-    if ((global as any).__prevDebugName__ === name) {
-      currName = ''.padEnd(Debug.nameWidth, padChar)
-    } else {
-      currName = currName.padEnd(Debug.nameWidth, padChar)
-    }
-    ;(global as any).__prevDebugName__ = name
 
-    let label = logLevel.padStart(5, ' ')
+    let label = logLevel.padStart(5, padChar)
     let diffLabel = ''
     let prefix = ''
     let prefixLen = 0
     let labelLen = 8
 
     if (useColors) {
+      if ((global as any).__prevDebugName__ === name) {
+        currName = ''.padEnd(Debug.nameWidth, padChar)
+      } else {
+        currName = currName.padEnd(Debug.nameWidth, padChar)
+      }
       switch (logLevel) {
         case 'ERROR':
           label = `\u001B[38;5;${logLevelColors.ERROR}m${label}\u001B[0m`
@@ -255,8 +260,9 @@ class Debug {
       prefixLen = prefix.length
       process.stderr.write(prefix)
     }
+    ;(global as any).__prevDebugName__ = name
 
-    const padding = ''.padStart(prefixLen, ' ')
+    const padding = ''.padStart(prefixLen, padChar)
 
     let index = -1
     format = format

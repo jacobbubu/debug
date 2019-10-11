@@ -1,5 +1,5 @@
 process.env.DEBUG = '*'
-process.env.DEBUG_COLORS = 'true'
+process.env.DEBUG_COLORS = 'color'
 process.env.DEBUG_INLINE_JSON = 'false'
 process.env.DEBUG_LOG_LEVEL = 'ALL'
 
@@ -7,6 +7,7 @@ import { Debug } from '../src'
 
 const d1 = Debug.create('http')
 const d2 = d1.ns('req')
+const d3 = d2.ns('res')
 
 d1.log('server started')
 d2.debug('raw request: %10.2B', Buffer.from('hello world'))
@@ -28,6 +29,8 @@ d2.log('%O', {
     }
   }
 })
+
+d3.error('error ocurred')
 
 setTimeout(() => {
   d2.log('doing a lots of uninteresting work')
