@@ -21,9 +21,9 @@ const inspectOpts: Record<string, string | boolean | null | number> = Object.key
 
     // Coerce string value into JS value
     let val: any = process.env[key]
-    if (/^(error|warn|info|debug|all)$/i.test(val!)) {
+    if (/^(error|warn|info|debug|all)$/i.test(val)) {
       val = val.toUpperCase()
-    } else if (/^(yes|on|true|enabled)$/i.test(val!)) {
+    } else if (/^(yes|on|true|enabled)$/i.test(val)) {
       val = true
     } else if (/^(no|off|false|disabled)$/i.test(val)) {
       val = false
