@@ -1,5 +1,7 @@
 # @jacobbubu/debug
 
+[![Build Status](https://travis-ci.org/jacobbubu/debug.svg)](https://travis-ci.org/jacobbubu/debug)
+
 Yet another [debug](https://github.com/visionmedia/debug) module written in typescript.
 
 ## Install
