@@ -2,7 +2,6 @@ language: node_js
 branches:
   only:
     - master
-    - /^greenkeeper/.*$/
 notifications:
   email: false
 node_js:
