@@ -1,5 +1,5 @@
 process.env.DEBUG = '*'
-process.env.DEBUG_COLORS = 'color'
+process.env.DEBUG_COLORS = 'true'
 process.env.DEBUG_INLINE_JSON = 'false'
 process.env.DEBUG_LOG_LEVEL = 'ALL'
 
@@ -30,7 +30,7 @@ d2.log('%O', {
   }
 })
 
-d3.error('error ocurred')
+d3.error(new Error('error encountered'))
 
 setTimeout(() => {
   d2.log('doing a lots of uninteresting work')

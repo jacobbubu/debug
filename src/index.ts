@@ -265,26 +265,31 @@ class Debug {
     const padding = ''.padStart(prefixLen, padChar)
 
     let index = -1
-    format = format
-      .replace(/%(?:[0-9a-zA-Z\.$\ ])*([a-zA-Z%])/g, (match: string, replacer) => {
-        if (match === '%%') {
-          return match
-        }
-        index++
-        const param = match.slice(1, -1)
-        const formatter = Debug.formatters[replacer]
-        if (formatter) {
-          const val = args[index]
-          match = formatter.call(self, val, param)
+    if ('string' !== typeof format) {
+      args.unshift(format)
+      format = ''
+    } else {
+      format = format
+        .replace(/%(?:[0-9a-zA-Z\.$\ ])*([a-zA-Z%])/g, (match: string, replacer) => {
+          if (match === '%%') {
+            return match
+          }
+          index++
+          const param = match.slice(1, -1)
+          const formatter = Debug.formatters[replacer]
+          if (formatter) {
+            const val = args[index]
+            match = formatter.call(self, val, param)
 
-          // Now we need to remove `args[index]` since it's inlined in the `format`
-          args.splice(index, 1)
-          index--
-        }
-        return match
-      })
-      .split('\n')
-      .join('\n' + padding)
+            // Now we need to remove `args[index]` since it's inlined in the `format`
+            args.splice(index, 1)
+            index--
+          }
+          return match
+        })
+        .split('\n')
+        .join('\n' + padding)
+    }
 
     for (let i = 0; i < args.length; i++) {
       const val = args[i]
