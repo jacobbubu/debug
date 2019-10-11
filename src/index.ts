@@ -6,7 +6,7 @@ import fsize = require('filesize')
 import { colors, logLevelColors, basicColors } from './colors'
 ;(global as any).__prevDebugName__ = ''
 
-const inspectOpts: Record<string, boolean | null | number> = Object.keys(process.env)
+const inspectOpts: Record<string, string | boolean | null | number> = Object.keys(process.env)
   .filter(key => {
     return /^debug_/i.test(key)
   })
@@ -21,14 +21,16 @@ const inspectOpts: Record<string, boolean | null | number> = Object.keys(process
 
     // Coerce string value into JS value
     let val: any = process.env[key]
-    if (/^(yes|on|true|enabled)$/i.test(val!)) {
+    if (/^(error|warn|info|debug|all)$/i.test(val!)) {
+      val = val.toUpperCase()
+    } else if (/^(yes|on|true|enabled)$/i.test(val!)) {
       val = true
     } else if (/^(no|off|false|disabled)$/i.test(val)) {
       val = false
     } else if (val === 'null') {
       val = null
     } else {
-      val = Number(val)
+      val = isNaN(val) ? val : Number(val)
     }
 
     obj[prop] = val
@@ -51,6 +53,17 @@ function getDate(utc: boolean) {
   return utc ? d.toISOString() + ' ' : formatDate(d) + ' '
 }
 
+function getEnabledLogLevel(): number {
+  const logLevel: LogLevel =
+    'string' === typeof inspectOpts.logLevel
+      ? (inspectOpts.logLevel.toUpperCase() as LogLevel)
+      : 'ALL'
+  if (!LogLevelConfig[logLevel]) {
+    throw new Error(`unknown DEBUG_LOG_LEVEL value '${inspectOpts.logLevel}'`)
+  }
+  return LogLevelConfig[logLevel] || 0
+}
+
 function useColors() {
   return 'colors' in inspectOpts ? Boolean(inspectOpts.colors) : isatty((process.stderr as any).fd)
 }
@@ -66,7 +79,15 @@ function selectColor(namespace: string) {
   return colors[Math.abs(hash) % colors.length]
 }
 
-type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG'
+type LogLevel = 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'ALL'
+
+const LogLevelConfig: Record<LogLevel, number> = {
+  ERROR: 200,
+  WARN: 300,
+  INFO: 400,
+  DEBUG: 500,
+  ALL: Number.MAX_VALUE
+}
 
 interface LogOptions {
   useInlineJson: boolean
@@ -83,6 +104,7 @@ class Debug {
   readonly useUTC: boolean
   readonly useColors: boolean
   readonly useInlineJson: boolean
+  readonly enabledLogLevel: number
 
   private prevTime = 0
   private curr = 0
@@ -99,6 +121,7 @@ class Debug {
     this.useColors = useColors()
     this.useUTC = useUTC()
     this.useInlineJson = useInlineJson()
+    this.enabledLogLevel = getEnabledLogLevel()
     this._enabled = Debug.enabled(namespace)
     Debug._instances.push(this)
   }
@@ -133,23 +156,33 @@ class Debug {
   }
 
   public error(format: any, ...args: any[]) {
-    this._log('ERROR', format, ...args)
+    if (this.enabledLogLevel >= LogLevelConfig.ERROR) {
+      this._log('ERROR', format, ...args)
+    }
   }
 
   public warn(format: any, ...args: any[]) {
-    this._log('WARN', format, ...args)
+    if (this.enabledLogLevel >= LogLevelConfig.WARN) {
+      this._log('WARN', format, ...args)
+    }
   }
 
   public log(format: any, ...args: any[]) {
-    this._log('INFO', format, ...args)
+    if (this.enabledLogLevel >= LogLevelConfig.INFO) {
+      this._log('INFO', format, ...args)
+    }
   }
 
   public info(format: any, ...args: any[]) {
-    this._log('INFO', format, ...args)
+    if (this.enabledLogLevel >= LogLevelConfig.INFO) {
+      this._log('INFO', format, ...args)
+    }
   }
 
   public debug(format: any, ...args: any[]) {
-    this._log('DEBUG', format, ...args)
+    if (this.enabledLogLevel >= LogLevelConfig.DEBUG) {
+      this._log('DEBUG', format, ...args)
+    }
   }
 
   public destroy() {

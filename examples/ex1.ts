@@ -1,6 +1,7 @@
 process.env.DEBUG = '*'
 process.env.DEBUG_COLORS = 'true'
 process.env.DEBUG_INLINE_JSON = 'false'
+process.env.DEBUG_LOG_LEVEL = 'ALL'
 
 import { Debug } from '../src'
 
