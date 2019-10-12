@@ -53,7 +53,7 @@ function getDate(utc: boolean) {
     return ''
   }
   const d = new Date()
-  return utc ? d.toISOString() + ' ' : formatDate(d) + ' '
+  return utc ? d.toISOString() : formatDate(d)
 }
 
 function getEnabledLogLevel(): number {
@@ -65,10 +65,6 @@ function getEnabledLogLevel(): number {
     throw new Error(`unknown DEBUG_LOG_LEVEL value '${inspectOpts.logLevel}'`)
   }
   return LogLevelConfig[logLevel] || 0
-}
-
-function getTextWidthInColorMode(useColors: boolean): number {
-  return useColors ? (inspectOpts.textWidthInColorMode as number) || 120 : Number.MAX_VALUE
 }
 
 function useColors() {
@@ -104,7 +100,6 @@ interface LogOptions {
   diff: number
   namespace: string
   logLevel: LogLevel
-  textWidthInColorMode: number
 }
 
 class Debug {
@@ -113,7 +108,6 @@ class Debug {
   readonly useColors: boolean
   readonly useInlineJson: boolean
   readonly enabledLogLevel: number
-  readonly textWidthInColorMode: number
 
   private prevTime = 0
   private curr = 0
@@ -131,7 +125,6 @@ class Debug {
     this.useUTC = useUTC()
     this.useInlineJson = useInlineJson()
     this.enabledLogLevel = getEnabledLogLevel()
-    this.textWidthInColorMode = getTextWidthInColorMode(this.useColors)
     this._enabled = Debug.enabled(namespace)
     Debug._instances.push(this)
   }
@@ -145,7 +138,7 @@ class Debug {
       return
     }
 
-    const { namespace, useColors, color, useUTC, useInlineJson, textWidthInColorMode } = this
+    const { namespace, useColors, color, useUTC, useInlineJson } = this
 
     const curr = Number(new Date())
     const ms = curr - (this.prevTime || curr)
@@ -160,8 +153,7 @@ class Debug {
       color,
       diff: ms,
       namespace,
-      logLevel,
-      textWidthInColorMode
+      logLevel
     }
     Debug.log(this, logOpts, format, ...args)
   }
@@ -209,19 +201,10 @@ class Debug {
   private static _skips: RegExp[]
   private static _names: RegExp[]
 
-  private static nameWidth = (inspectOpts.nameWidth || 9) as number
+  private static nameWidth = (inspectOpts.nameWidth || 10) as number
 
   private static log(self: Debug, opts: LogOptions, format: string, ...args: any[]) {
-    const {
-      namespace: name,
-      useColors,
-      useUTC,
-      useInlineJson,
-      color,
-      diff,
-      logLevel,
-      textWidthInColorMode
-    } = opts
+    const { namespace: name, useColors, useUTC, useInlineJson, color, diff, logLevel } = opts
     let currName
 
     if (useColors) {
@@ -232,14 +215,18 @@ class Debug {
     } else {
       currName = name
     }
+    const nameWidth = Debug.nameWidth
+    const labelWidth = 7
+    let diffWidth = 0
 
     const padChar = ' '
+    const sep = '  '
 
     let label = logLevel.padStart(5, padChar)
     let diffLabel = ''
     let prefix = ''
-    let prefixLen = 0
-    let labelLen = 8
+    let prefixWidth = 0
+    let textLineWidth = Number.MAX_VALUE
 
     if (useColors) {
       if ((global as any).__prevDebugName__ === name) {
@@ -265,24 +252,26 @@ class Debug {
       }
 
       label = '[' + label + ']'
-      process.stderr.write(label)
 
       const c = color
       const colorCode = '\u001B[3' + (c < 8 ? c : '8;5;' + c)
-      prefix = `  ${colorCode};1m${currName}  \u001B[0m  `
-      prefixLen = labelLen + currName.length + 6
+      prefix = [label, `${colorCode};1m${currName}\u001B[0m`, ''].join(sep)
+      prefixWidth = labelWidth + nameWidth + sep.length * 2
 
       process.stderr.write(prefix)
-      diffLabel = colorCode + 'm+' + humanize(diff) + '\u001B[0m'
+      diffLabel = '+' + humanize(diff)
+      diffWidth = sep.length + diffLabel.length
+      diffLabel = colorCode + 'm' + diffLabel + '\u001B[0m'
+      textLineWidth = process.stderr.columns - prefixWidth - diffWidth
     } else {
       label = '[' + label + ']'
-      prefix = `${label}  ${getDate(useUTC)} ${currName}  `
-      prefixLen = prefix.length
+      prefix = label + sep + getDate(useUTC) + sep + currName + sep
+      prefixWidth = prefix.length
       process.stderr.write(prefix)
     }
     ;(global as any).__prevDebugName__ = name
 
-    const padding = ''.padStart(prefixLen, padChar)
+    const padding = ''.padStart(prefixWidth, padChar)
 
     let index = -1
     if ('string' !== typeof (format as unknown)) {
@@ -309,9 +298,7 @@ class Debug {
         })
         .split('\n')
         .map(text =>
-          text.length >= textWidthInColorMode
-            ? slice(text, 0, textWidthInColorMode - 1) + Ellipsis
-            : text
+          text.length >= textLineWidth ? slice(text, 0, textLineWidth - 2) + ' ' + Ellipsis : text
         )
         .join('\n' + padding)
     }
@@ -324,16 +311,14 @@ class Debug {
           .call(self, val)
           .split('\n')
           .map(text =>
-            text.length >= textWidthInColorMode
-              ? slice(text, 0, textWidthInColorMode - 1) + Ellipsis
-              : text
+            text.length >= textLineWidth ? slice(text, 0, textLineWidth - 2) + ' ' + Ellipsis : text
           )
           .join('\n' + padding)
       }
     }
 
     process.stderr.write(util.format(format, ...args))
-    process.stderr.write(' ' + diffLabel + '\n')
+    process.stderr.write(sep + diffLabel + '\n')
   }
 
   public static create(name: string) {

@@ -1,9 +1,8 @@
 const env = process.env
 env.DEBUG = '*'
-env.DEBUG_COLORS = 'color'
+env.DEBUG_COLORS = 'true'
 env.DEBUG_INLINE_JSON = 'false'
 env.DEBUG_LOG_LEVEL = 'ALL'
-env.DEBUG_TEXT_WIDTH_IN_COLOR_MODE = '132'
 
 import { Debug } from '../src'
 
