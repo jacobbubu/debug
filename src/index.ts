@@ -3,8 +3,11 @@ import * as util from 'util'
 import humanize = require('ms')
 import formatDate = require('date-format')
 import fsize = require('filesize')
+import slice from 'unicode-slice'
 import { colors, logLevelColors, basicColors } from './colors'
 ;(global as any).__prevDebugName__ = ''
+
+const Ellipsis = '…'
 
 const inspectOpts: Record<string, string | boolean | null | number> = Object.keys(process.env)
   .filter(key => {
@@ -64,6 +67,10 @@ function getEnabledLogLevel(): number {
   return LogLevelConfig[logLevel] || 0
 }
 
+function getTextWidthInColorMode(useColors: boolean): number {
+  return useColors ? (inspectOpts.textWidthInColorMode as number) || 120 : Number.MAX_VALUE
+}
+
 function useColors() {
   return 'colors' in inspectOpts ? Boolean(inspectOpts.colors) : isatty((process.stderr as any).fd)
 }
@@ -97,6 +104,7 @@ interface LogOptions {
   diff: number
   namespace: string
   logLevel: LogLevel
+  textWidthInColorMode: number
 }
 
 class Debug {
@@ -105,6 +113,7 @@ class Debug {
   readonly useColors: boolean
   readonly useInlineJson: boolean
   readonly enabledLogLevel: number
+  readonly textWidthInColorMode: number
 
   private prevTime = 0
   private curr = 0
@@ -122,6 +131,7 @@ class Debug {
     this.useUTC = useUTC()
     this.useInlineJson = useInlineJson()
     this.enabledLogLevel = getEnabledLogLevel()
+    this.textWidthInColorMode = getTextWidthInColorMode(this.useColors)
     this._enabled = Debug.enabled(namespace)
     Debug._instances.push(this)
   }
@@ -135,7 +145,7 @@ class Debug {
       return
     }
 
-    const { namespace, useColors, color, useUTC, useInlineJson } = this
+    const { namespace, useColors, color, useUTC, useInlineJson, textWidthInColorMode } = this
 
     const curr = Number(new Date())
     const ms = curr - (this.prevTime || curr)
@@ -150,7 +160,8 @@ class Debug {
       color,
       diff: ms,
       namespace,
-      logLevel
+      logLevel,
+      textWidthInColorMode
     }
     Debug.log(this, logOpts, format, ...args)
   }
@@ -201,13 +212,22 @@ class Debug {
   private static nameWidth = (inspectOpts.nameWidth || 9) as number
 
   private static log(self: Debug, opts: LogOptions, format: string, ...args: any[]) {
-    const { namespace: name, useColors, useUTC, useInlineJson, color, diff, logLevel } = opts
+    const {
+      namespace: name,
+      useColors,
+      useUTC,
+      useInlineJson,
+      color,
+      diff,
+      logLevel,
+      textWidthInColorMode
+    } = opts
     let currName
 
     if (useColors) {
       currName =
         name.length > Debug.nameWidth
-          ? name.slice(0, Debug.nameWidth - 1) + '…'
+          ? name.slice(0, Debug.nameWidth - 1) + Ellipsis
           : name.slice(0, Debug.nameWidth)
     } else {
       currName = name
@@ -288,6 +308,11 @@ class Debug {
           return match
         })
         .split('\n')
+        .map(text =>
+          text.length >= textWidthInColorMode
+            ? slice(text, 0, textWidthInColorMode - 1) + Ellipsis
+            : text
+        )
         .join('\n' + padding)
     }
 
@@ -298,6 +323,11 @@ class Debug {
         args[i] = formatter
           .call(self, val)
           .split('\n')
+          .map(text =>
+            text.length >= textWidthInColorMode
+              ? slice(text, 0, textWidthInColorMode - 1) + Ellipsis
+              : text
+          )
           .join('\n' + padding)
       }
     }
@@ -382,7 +412,7 @@ class Debug {
       .replace(/\.\*\?$/, '*')
   }
 
-  public static formatters: Record<string, Function> = {
+  public static formatters: Record<string, (this: Debug, v: any, ...args: any[]) => string> = {
     o: function(this: Debug, v: any, param: string) {
       inspectOpts.colors = this.useColors
       return util.inspect(v, inspectOpts).replace(/\s*\n\s*/g, ' ')

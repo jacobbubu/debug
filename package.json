@@ -122,7 +122,8 @@
     "date-format": "^2.1.0",
     "filesize": "^5.0.3",
     "ms": "^2.1.2",
-    "supports-color": "^7.1.0"
+    "supports-color": "^7.1.0",
+    "unicode-slice": "^1.0.1"
   },
   "publishConfig": {
     "access": "public"
