@@ -285,7 +285,7 @@ class Debug {
     const padding = ''.padStart(prefixLen, padChar)
 
     let index = -1
-    if ('string' !== typeof format) {
+    if ('string' !== typeof (format as unknown)) {
       args.unshift(format)
       format = ''
     } else {
