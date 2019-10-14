@@ -11,7 +11,7 @@ const d2 = d1.ns('req')
 const d3 = d2.ns('res')
 
 d1.log('server started')
-d2.debug('raw request: %10.2B', Buffer.from('hello world'))
+d2.debug('raw request: %10.2B', Buffer.from('hello\n\n'))
 
 d2.log('%O', {
   headers: {

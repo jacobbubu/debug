@@ -419,7 +419,7 @@ class Debug {
       if (v.length) {
         const overLimit = v.length > limit ? '…' : ''
         const partial = v.slice(0, limit)
-        let textValue = `'${partial.toString() + overLimit}'`
+        let textValue = `'${partial.toString().replace(/\n/g, '\\n') + overLimit}'`
         if (this.useColors) {
           textValue = basicColors.yellow(textValue)
         }
