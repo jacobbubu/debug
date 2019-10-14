@@ -262,7 +262,7 @@ class Debug {
       diffLabel = '+' + humanize(diff)
       diffWidth = sep.length + diffLabel.length
       diffLabel = colorCode + 'm' + diffLabel + '\u001B[0m'
-      textLineWidth = process.stderr.columns! - prefixWidth - diffWidth
+      textLineWidth = (process.stderr as any).columns - prefixWidth - diffWidth
     } else {
       label = '[' + label + ']'
       prefix = label + sep + getDate(useUTC) + sep + currName + sep
