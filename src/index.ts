@@ -262,7 +262,7 @@ class Debug {
       diffLabel = '+' + humanize(diff)
       diffWidth = sep.length + diffLabel.length
       diffLabel = colorCode + 'm' + diffLabel + '\u001B[0m'
-      textLineWidth = process.stderr.columns - prefixWidth - diffWidth
+      textLineWidth = process.stderr.columns! - prefixWidth - diffWidth
     } else {
       label = '[' + label + ']'
       prefix = label + sep + getDate(useUTC) + sep + currName + sep
@@ -279,7 +279,7 @@ class Debug {
       format = ''
     } else {
       format = format
-        .replace(/%(?:[0-9a-zA-Z\.$\ ])*([a-zA-Z%])/g, (match: string, replacer) => {
+        .replace(/%(?:[0-9a-zA-Z\.$])*([a-zA-Z%])/g, (match: string, replacer) => {
           if (match === '%%') {
             return match
           }
@@ -441,7 +441,7 @@ class Debug {
           textValue +
           ']'
       } else {
-        out = '[Buf (${bufLenText})]'
+        out = `[Buf (0 B)]`
       }
       return out
     }
