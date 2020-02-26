@@ -127,6 +127,12 @@ class Debug {
     this.enabledLogLevel = getEnabledLogLevel()
     this._enabled = Debug.enabled(namespace)
     Debug._instances.push(this)
+
+    this.error = this.error.bind(this)
+    this.warn = this.warn.bind(this)
+    this.info = this.info.bind(this)
+    this.log = this.log.bind(this)
+    this.debug = this.debug.bind(this)
   }
 
   public ns(namespace: string, delimiter: string = ':') {

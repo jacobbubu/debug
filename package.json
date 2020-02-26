@@ -29,7 +29,8 @@
     "semantic-release": "semantic-release",
     "semantic-release-prepare": "tsnd tools/semantic-release-prepare",
     "precommit": "lint-staged",
-    "example:ex1": "tsnd --respawn examples/ex1.ts"
+    "example:ex1": "tsnd --respawn examples/ex1.ts",
+    "example:ex2": "tsnd --respawn examples/ex2.ts"
   },
   "lint-staged": {
     "{src,test}/**/*.ts": [
