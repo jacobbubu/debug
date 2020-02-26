@@ -23,4 +23,4 @@ jobs:
   include:
     - stage: release
       name: "Semantic Release"
-      script: npm run test:prod && npm run build && npm run report-coverage && npm run semantic-release
+      script: npm run test:prod && npm run build && npm run semantic-release
