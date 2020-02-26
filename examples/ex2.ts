@@ -7,6 +7,8 @@ env.DEBUG_LOG_LEVEL = 'ALL'
 import { Debug } from '../src'
 
 const d1 = Debug.create('http')
+
+// the following methods will bind to their original this
 const debug = d1.debug
 const info = d1.info
 const warn = d1.warn
