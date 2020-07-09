@@ -406,11 +406,13 @@ class Debug {
   public static formatters: Record<string, (this: Debug, v: any, ...args: any[]) => string> = {
     o: function(this: Debug, v: any, param: string) {
       inspectOpts.colors = this.useColors
-      return util.inspect(v, inspectOpts).replace(/\s*\n\s*/g, ' ')
+      const depth = param ? Number(param) : 2
+      return util.inspect(v, { ...inspectOpts, depth }).replace(/\s*\n\s*/g, ' ')
     },
     O: function(this: Debug, v: any, param: string) {
       inspectOpts.colors = this.useColors
-      return util.inspect(v, inspectOpts)
+      const depth = param ? Number(param) : 2
+      return util.inspect(v, { ...inspectOpts, depth })
     },
     B: function(this: Debug, v: Buffer | null, param: string) {
       if (!Buffer.isBuffer(v)) {

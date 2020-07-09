@@ -13,7 +13,7 @@ const d3 = d2.ns('res')
 d1.log('server started')
 d2.debug('raw request: %10.2B', Buffer.from('hello\n\n'))
 
-d2.log('%O', {
+d2.log('%5O', {
   headers: {
     'x-': 'USER_ID'
   },
@@ -26,7 +26,10 @@ d2.log('%O', {
     seq: 73,
     text: 'hello, world!',
     quick_reply: {
-      payload: 'DEVELOPER_DEFINED_PAYLOAD'
+      payload: 'DEVELOPER_DEFINED_PAYLOAD',
+      author: {
+        name: 'Steve'
+      }
     }
   }
 })
